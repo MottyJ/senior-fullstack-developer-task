@@ -1,19 +1,39 @@
 import { createStore } from "vuex"
+import axios from "axios"
 
 export default createStore({
 	state: {
-		// Define your state here
+		user: {
+			username: null,
+			roles: [],
+			status: null,
+		},
 	},
 	getters: {
-		// Define your getters here
+		isAuthenticated: state => !!state.user.username,
+		username: state => state.user.username,
+		roles: state => state.user.roles,
+		status: state => state.user.status,
+		isEditor: state => state.user.roles.includes('Editor'),
+		isAdmin: state => state.user.roles.includes('Admin'),
 	},
 	mutations: {
-		// Define your mutations here
+		SET_USER(state, payload) {
+			state.user = payload
+		},
+		CLEAR_USER(state) {
+			state.user = { username: null, roles: [], status: null }
+		},
 	},
 	actions: {
-		// Define your actions here
-	},
-	modules: {
-		// Define your modules here
+		async login({ commit }, username) {
+			const { data } = await axios.post(`/api/users/login/${username}`)
+			axios.defaults.headers.common['token'] = data.username
+			commit('SET_USER', data)
+		},
+		logout({ commit }) {
+			delete axios.defaults.headers.common['token']
+			commit('CLEAR_USER')
+		},
 	},
 })
